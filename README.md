@@ -11,7 +11,8 @@ Jaringan Komputer (F) </br>
 
 ## Soal 0
 Topologi
-![Alt Text]()
+![Alt Text](image/topo.jpg)
+
 ### Configurasi:
 ROUTER - AURA
 ```
@@ -252,7 +253,11 @@ ping riegel.canyon.E17.com
 ping granz.channel.E17.com
 ```
 ### Hasil
-![Alt Text]()
+ping riegel.canyon.E17.com
+![Alt Text](image/ping-riegel.png)
+
+ping granz.channel.E17.com
+![Alt Text](image/ping_granz.png)
 
 ## Soal 2
 > Semua CLIENT harus menggunakan konfigurasi dari DHCP Server. Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.16 - [prefix IP].3.32 dan [prefix IP].3.64 - [prefix IP].3.80
@@ -439,6 +444,80 @@ service isc-dhcp-server status
 > Berjalannya waktu, petualang diminta untuk melakukan deployment. Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website ``berikut`` dengan menggunakan php 7.3
 
 ### Script Pengerjaan
+- Pada masing-masing workernya konfigurasikan DNS nya, update package list dan install paket Nginx, php, dan php-fm, dan buat direktori baru bernama modul3 di dalam direktori /var/www
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt-get update
+apt-get install nginx -y
+service nginx start
+service nginx status
+
+apt-get install php php-fpm -y
+apt-get install wget -y
+apt-get install unzip -y
+
+mkdir /var/www/modul3
+```
+- Import file dari google drive yang disediakan untuk mengisi /var/www dari granz.channel.yyy.com
+```
+cd /var/www/modul3
+
+wget –no-check-certificate 'https://docs.google.com/uc?export=download&id=1ViSkRq7SmwZgdK64eRbr5Fm1EGCTPrU1' -O granz.channel.yyy.com
+```
+- Lakukan unzip dan sesuaikan struktur folder untuk tepat berada di dalam /var/www/modul3
+```
+unzip granz.channel.yyy.com -d granz.channel.E17.com
+rm granz.channel.yyy.com
+mv granz.channel.E17.com/modul-3/* granz.channel.E17.com
+rmdir granz.channel.E17.com/modul-3
+
+mv granz.channel.E17.com/index.php /var/www/modul3/index.php
+```
+- Buat konfigurasi server Nginx dan menyimpannya dalam file /etc/nginx/sites-available/modul3. Konfigurasi ini mengatur Nginx untuk mendengarkan permintaan pada port 80, menetapkan root direktori ke /var/www/modul3, mengizinkan akses file PHP, dan mencatat error dan akses log.
+```
+nano /etc/nginx/sites-available/modul3
+ server {
+
+ 	listen 80;
+
+ 	root /var/www/modul3;
+
+ 	index index.php index.html index.htm;
+ 	server_name _;
+
+ 	location / {
+ 			try_files $uri $uri/ /index.php?$query_string;
+ 	}
+
+ 	# pass PHP scripts to FastCGI server
+ 	location ~ \.php$ {
+ 	include snippets/fastcgi-php.conf;
+ 	fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+ 	}
+
+ location ~ /\.ht {
+ 			deny all;
+ 	}
+
+ 	error_log /var/log/nginx/jarkom_error.log;
+ 	access_log /var/log/nginx/jarkom_access.log;
+ }
+```
+- Lalu buat symlink dari konfigurasi Nginx yang telah dibuat di dalam direktori sites-available, hapus konfigurasi default Nginx yang ada di dalam direktori sites-enabled. Mulai layanan php-fpm, restart php-fpm, reload konfigurasi Nginx, menerapkan perubahan yang baru saja dibuat, dan restart server Nginx.
+```
+ln -s /etc/nginx/sites-available/modul3 /etc/nginx/sites-enabled
+
+rm -r /etc/nginx/sites-enabled/default
+
+service nginx reload
+service nginx restart
+service php7.3-fpm start
+```
+- Lakukan testing pada Client dengan perintah
+```
+curl granz.channel.E17.com
+```
 ### Hasil
 ![Alt Text]()
 
@@ -450,6 +529,71 @@ c. Lugner 1GB, 1vCPU, dan 25 GB SSD.
 aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
 
 ### Script Pengerjaan
+- Buka kembali Node DNS Server dan arahkan domain tersebut pada IP Load Balancer Eisen
+```
+echo ‘
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     channel.E17.com. root.channel.E17.com. (
+                        2      ; Serial
+                        604800         ; Refresh
+                        86400         ; Retry
+                        2419200         ; Expire
+                        604800 )       ; Negative Cache TTL
+;
+@       IN      NS      channel.E17.com.
+@       IN      A       10.45.1.2 	; IP Heiter
+granz  IN      A       10.45.2.2	; LB
+‘ > /etc/bind/jarkom/channel.E17.com
+```
+- Pada eisen load balancer, kita konfigurasi DNS nya dan update package list beserta install Nginx
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt-get update
+apt-get install nginx
+```
+- kemudian buat ``file/etc/resolv.conf`` dan isikan beberapa alamat DNSnya. Lalu buat juga file untuk membuat konfigurasi server Nginx yang mana konfigurasi ini mengatur Nginx untuk mendengarkan permintaan pada port 80 dan meneruskannya ke grup server yang ditentukan di dalam blok upstream.
+```
+nano /etc/resolv.conf
+nameserver 10.45.1.2
+nameserver 10.45.2.2
+
+nano /etc/nginx/sites-available/lb-modul3
+upstream webserver {
+	server 10.45.3.1;
+	server 10.45.3.2;
+	server 10.45.3.3;
+}
+
+server {
+	Listen 80;
+	Server_name granz.channel.E17.com;
+
+	location / {
+        proxy_pass http://worker;
+    }
+	error_log /var/log/nginx/modul3_error.log;
+ 	access_log /var/log/nginx/modul3_access.log;
+}
+
+ln -s /etc/nginx/sites-available/lb-modul3 /etc/nginx/sites-enabled/
+```
+- Restart Service nginx Dengan Perintah
+```
+service nginx restart
+service nginx status
+```
+- instalasi Apache benchmark pada client
+```
+apt-get update && apt-get install apache2-utils
+```
+- Lakukan testing website apache.org menggunakan Apache bencmark
+```
+ab -n 1000 -c 100 -g no7.data http://granz.channel.E17.com/
+```
 ### Hasil
 ![Alt Text]()
 
@@ -461,20 +605,134 @@ c. Grafik request per second untuk masing masing algoritma.
 d. Analisis
 
 ### Script Pengerjaan
+- konfigurasinya sama dengan Soal 7
+- Lakukan testing pada masing-masing algoritma Load Balancer
+Round robin
+```
+ab -n 200 -c 10 -g no8roundrobin.data http://granz.channel.E17.com/
+```
+Least connection
+```
+ab -n 200 -c 10 -g no8leastconn.data http://granz.channel.E17.com/
+```
+Ip hash
+```
+ab -n 200 -c 10 -g no8iphash.data http://granz.channel.E17.com/
+```
+Generic hash
+```
+ab -n 200 -c 10 -g no8generichash.data http://granz.channel.E17.com/
+```
 ### Hasil
+Round robin
+![Alt Text]()
+
+Least connection
+![Alt Text]()
+
+Ip hash
+![Alt Text]()
+
+Generic hash
+![Alt Text]()
+
+Grafik
 ![Alt Text]()
 
 ## Soal 9
 > Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
 
 ### Script Pengerjaan
+- Untuk menjalankan testing tiap jumlah worker, kita setup upstream yang terkoneksikan dengan worker
+3 Worker 
+- lakukan setup pada node Eisen dan jalankan load balancernya
+```
+Upstream:
+server 10.45.3.1;
+server 10.45.3.2;
+server 10.45.3.3;
+```
+- Selanjutnya lakukan testing menggunakan 3 worker pada client
+```
+ab -n 100 -c 10 -g no9_3worker.data http://granz.channel.E17.com/
+```
+2 Worker 
+- lakukan setup pada node Eisen dan jalankan load balancernya
+```
+Upstream:
+#server 10.45.3.1;
+server 10.45.3.2;
+server 10.45.3.3;
+```
+- Selanjutnya lakukan testing menggunakan 2 worker pada client
+```
+ab -n 100 -c 10 -g no9_2worker.data http://granz.channel.E17.com/
+```
+1 Worker 
+- lakukan setup pada node Eisen dan jalankan load balancernya
+```
+Upstream:
+#server 10.45.3.1;
+#server 10.45.3.2;
+server 10.45.3.3;
+```
+- Selanjutnya lakukan testing menggunakan 1 worker pada client
+```
+ab -n 100 -c 10 -g no9_1worker.data http://granz.channel.E17.com/
+```
 ### Hasil
+3 Worker
+![Alt Text]()
+
+2 worker
+![Alt Text]()
+
+1 worker
+![Alt Text]()
+
+grafik
 ![Alt Text]()
 
 ## Soal 10
 > Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
 
 ### Script Pengerjaan
+- Generate user dan password menggunakan htpasswd
+```
+mkdir /etc/nginx/rahasiakita
+htpasswd -c -b /etc/nginx/rahasiakita/.htpasswd netics ajke17
+```
+- Lalu, masukkan passwordnya ``ajke17``. Jika sudah memasukkan password dan re-type password.
+- Edit konfigurasi Auth Basic pada ``/etc/nginx/sites-available/lb-modul3`` di node Load Balancer (Eisen) dengan script sebagai berikut:
+```
+upstream webserver  {
+        server 10.45.3.1;
+        server 10.45.3.2;
+        server 10.45.3.3;
+ }
+
+ server {
+        listen 80;
+        server_name granz.channel.E17.com;
+
+        location / {
+                proxy_pass http://webserver;
+                auth_basic "Administrator's Area";
+                auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd;
+        }
+        location ~* /its {
+                proxy_pass https://www.its.ac.id;
+        }
+
+        location ~ /\.ht {
+                deny all;
+        }
+ }
+```
+- Lakukan testing pada client dengan perintah
+```
+ab -A netics:ajke17 -n 100 -c 100 http://granz.channel.E17.com/
+```
 ### Hasil
 ![Alt Text]()
 
