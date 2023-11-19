@@ -598,7 +598,8 @@ apt-get update && apt-get install apache2-utils
 ab -n 1000 -c 100 -g no7.data http://granz.channel.E17.com/
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no7.png)
+![](image/no7Lanjutan.png)
 
 ## Soal 8
 > Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:
@@ -754,7 +755,15 @@ upstream webserver  {
 ab -A netics:ajke17 -n 100 -c 100 http://granz.channel.E17.com/
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no10.png)
+
+curl granz.channel.E17.com
+
+![](image/no10-curl.png)
+
+lynx granz.channel.E17.com
+![](image/no10-lynx.png)
+![](image/no10-lynx2.png)
 
 ## Soal 11
 > Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman ``https://www.its.ac.id.``
@@ -793,7 +802,9 @@ upstream webserver  {
 lynx granz.channel.E17.com/its
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no11-lynx.png)
+![Alt Text](image/no11-lynx2.png)
+![Alt Text](image/no11-lynx3.png)
 
 ## Soal 12
 > Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168.
