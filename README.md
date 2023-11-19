@@ -628,16 +628,21 @@ ab -n 200 -c 10 -g no8generichash.data http://granz.channel.E17.com/
 ```
 ### Hasil
 Round robin
-![Alt Text]()
+
+![Alt Text](image/RoundRobin.png)
+![Alt Text](image/RoundRobin2.png)
 
 Least connection
-![Alt Text]()
+
+![Alt Text](image/LeastConnection.png)
 
 Ip hash
-![Alt Text]()
+
+![Alt Text](image/IPHash.png)
 
 Generic hash
-![Alt Text]()
+
+![Alt Text](image/GenericHash.png)
 
 Grafik
 ![Alt Text]()
@@ -685,16 +690,25 @@ ab -n 100 -c 10 -g no9_1worker.data http://granz.channel.E17.com/
 ```
 ### Hasil
 3 Worker
-![Alt Text]()
+
+![Alt Text](image/3Worker.png)
 
 2 worker
-![Alt Text]()
+
+![Alt Text](image/2Worker.png)
 
 1 worker
-![Alt Text]()
+
+![Alt Text](image/1Worker.png)
 
 grafik
-![Alt Text]()
+Request Per Second
+
+![Alt Text](image/Request Per Second-worker.png)
+
+Time Taken
+
+![Alt Text](image/Time Taken-worker.png)
 
 ## Soal 10
 > Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
