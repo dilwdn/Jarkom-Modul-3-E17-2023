@@ -645,7 +645,13 @@ Generic hash
 ![Alt Text](image/GenericHash.png)
 
 Grafik
-![Alt Text]()
+Request Per Second
+
+![Alt Text](image/Request Per Second-algo.png)
+
+Time Taken
+
+![Alt Text](image/Time Taken-algo.png)
 
 ## Soal 9
 > Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
