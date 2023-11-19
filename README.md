@@ -1071,7 +1071,7 @@ b. POST /auth/login
 ### Script Pengerjaan
 curl -X POST -H "Content-Type: application/json" -d '{"username": "bubub", "password": "000000"}' http://10.45.4.1:8001/api/auth/login | jq -r '.token' > token.txt
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no16.png)
 
 ## Sola 17
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
@@ -1097,7 +1097,13 @@ use dbe17;
 Select * from users;
 ```
 ### Hasil
-![Alt Text]()
+Frieren
+
+![Alt Text](image/no17.png)
+
+Danken
+
+![](image/no17-2.png)
 
 ## Soal 18
 > Untuk memastikan ketiganya bekerja sama secara adil untuk mengatur Riegel Channel maka implementasikan Proxy Bind pada Eisen untuk mengaitkan IP dari Frieren, Flamme, dan Fern.
@@ -1131,7 +1137,7 @@ service nginx restart
 service nginx status
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no18.png)
 
 ## Soal 19
 > Untuk meningkatkan performa dari Worker, coba implementasikan PHP-FPM pada Frieren, Flamme, dan Fern. Untuk testing kinerja naikkan 
@@ -1232,7 +1238,16 @@ service php8.0-fpm restart
 ab -n 100 -c 10 -T 'application/json' -p register3_data.json -g register3_results.data http://riegel.canyon.E17.com/api/auth/register
 ```
 ### Hasil
-![Alt Text]()
+Percobaan 1
+
+![Alt Text](image/no19-coba1.png)
+
+Percobaan 2
+
+![](image/no19-coba2.png)
+
+Percobaan 3
+![](image/no19-coba3.png)
 
 ## Soal 20
 > Nampaknya hanya menggunakan PHP-FPM tidak cukup untuk meningkatkan performa dari worker maka implementasikan Least-Conn pada Eisen. Untuk testing kinerja dari worker tersebut dilakukan sebanyak 100 request dengan 10 request/second.
@@ -1266,4 +1281,4 @@ service nginx restart
 ab -n 100 -c 10 -T 'application/json' -p register3_data.json -g register3_results.data http://riegel.canyon.E17.com/api/auth/register 
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no20.png)
