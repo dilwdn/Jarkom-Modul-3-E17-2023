@@ -11,6 +11,7 @@ Jaringan Komputer (F) </br>
 
 ## Soal 0
 Topologi
+
 ![Alt Text](image/topo.jpg)
 
 ### Configurasi:
@@ -254,9 +255,11 @@ ping granz.channel.E17.com
 ```
 ### Hasil
 ping riegel.canyon.E17.com
+
 ![Alt Text](image/ping-riegel.png)
 
 ping granz.channel.E17.com
+
 ![Alt Text](image/ping_granz.png)
 
 ## Soal 2
@@ -438,7 +441,7 @@ service isc-dhcp-server status
 ```
 
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no5.png)
 
 ## Soal 6
 > Berjalannya waktu, petualang diminta untuk melakukan deployment. Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website ``berikut`` dengan menggunakan php 7.3
