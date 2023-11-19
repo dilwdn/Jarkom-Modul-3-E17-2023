@@ -648,11 +648,11 @@ Generic hash
 Grafik
 Request Per Second
 
-![Alt Text](image/Request Per Second-algo.png)
+![Alt Text](image/RequestPerSecond-algo.png)
 
 Time Taken
 
-![Alt Text](image/Time Taken-algo.png)
+![Alt Text](image/TimeTaken-algo.png)
 
 ## Soal 9
 > Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
@@ -711,11 +711,11 @@ ab -n 100 -c 10 -g no9_1worker.data http://granz.channel.E17.com/
 grafik
 Request Per Second
 
-![Alt Text](image/Request Per Second-worker.png)
+![Alt Text](image/RequestPerSecond-worker.png)
 
 Time Taken
 
-![Alt Text](image/Time Taken-worker.png)
+![Alt Text](image/TimeTaken-worker.png)
 
 ## Soal 10
 > Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
@@ -762,6 +762,7 @@ curl granz.channel.E17.com
 ![](image/no10-curl.png)
 
 lynx granz.channel.E17.com
+
 ![](image/no10-lynx.png)
 ![](image/no10-lynx2.png)
 
@@ -874,6 +875,8 @@ GRANT ALL PRIVILEGES ON *.* TO 'kelompoke17'@'%';
 GRANT ALL PRIVILEGES ON *.* TO 'kelompoke17'@'localhost';
 FLUSH PRIVILEGES;
 ```
+![](image/no13-create.png)
+![](image/no13-ShowDatabase.png)
 - Untuk mengecek apakah database sudah dapat diakses melalui Worker, lakukan instalasi mariadb-client pada Worker1 sebagai berikut:
 ```
 apt-get update
@@ -1059,7 +1062,7 @@ nano /root/login_data.json
 ab -n 100 -c 10 -T 'application/json' -p register_data.json -g register_results.data http://192.177.4.1:8001/api/auth/register
 ```
 ### Hasil
-![Alt Text]()
+![Alt Text](image/no15.png)
 
 ## Soal 16
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
