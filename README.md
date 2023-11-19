@@ -743,9 +743,6 @@ upstream webserver  {
                 auth_basic "Administrator's Area";
                 auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd;
         }
-        location ~* /its {
-                proxy_pass https://www.its.ac.id;
-        }
 
         location ~ /\.ht {
                 deny all;
@@ -763,6 +760,38 @@ ab -A netics:ajke17 -n 100 -c 100 http://granz.channel.E17.com/
 > Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman ``https://www.its.ac.id.``
 
 ### Script Pengerjaan
+- Edit konfigurasi pada Eisen. Ketika kita melakukan akses pada endpoint yang mengandung /its akan diarahkan oleh proxy_pass menuju https://www.its.ac.id
+```
+upstream webserver  {
+        server 10.45.3.1;
+        server 10.45.3.2;
+        server 10.45.3.3;
+ }
+
+ server {
+        listen 80;
+        server_name granz.channel.E17.com;
+
+        location / {
+                proxy_pass http://webserver;
+                auth_basic "Administrator's Area";
+                auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd;
+        }
+        location ~* /its {
+                proxy_pass https://www.its.ac.id;
+        }
+
+
+
+        location ~ /\.ht {
+                deny all;
+        }
+ }
+```
+- Lakukan testing pada client dengan perintah
+```
+lynx granz.channel.E17.com/its
+```
 ### Hasil
 ![Alt Text]()
 
@@ -770,6 +799,43 @@ ab -A netics:ajke17 -n 100 -c 100 http://granz.channel.E17.com/
 > Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168.
 
 ### Script Pengerjaan
+- Edit konfigurasi pada Eisen dengan beberapa ketentuan di soal.
+- Disini kami hanya mengizinkan beberapa IP saja sesuai dengan ketentual soal dan kamu menolak seluruh IP selain yang telah ditentukan soal. Untuk melakukan testingnya. Bisa dilakukan dengan membuka client yang mendapatkan IP 192.173.3.69 atau 192.173.3.70 atau 192.173.4.167 atau 192.173.4.168
+```
+upstream webserver  {
+        server 10.45.3.1;
+        server 10.45.3.2;
+        server 10.45.3.3;
+ }
+
+ server {
+        listen 80;
+        server_name granz.channel.E17.com;
+
+        location / {
+                proxy_pass http://webserver;
+                auth_basic "Administrator's Area";
+                auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd;
+
+allow 10.45.3.69;
+	allow 10.45.3.70;
+	allow 10.45.3.167;
+	allow 10.45.3.168;
+	
+	deny all;
+        }
+        location ~* /its {
+                proxy_pass https://www.its.ac.id;
+	allow all;
+        }
+
+
+
+        location ~ /\.ht {
+                deny all;
+        }
+ }
+```
 ### Hasil
 ![Alt Text]()
 
