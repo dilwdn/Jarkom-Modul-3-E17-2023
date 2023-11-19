@@ -1247,6 +1247,7 @@ Percobaan 2
 ![](image/no19-coba2.png)
 
 Percobaan 3
+
 ![](image/no19-coba3.png)
 
 ## Soal 20
