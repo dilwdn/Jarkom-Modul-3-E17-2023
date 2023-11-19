@@ -844,6 +844,34 @@ allow 10.45.3.69;
 Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frieren, Flamme, dan Fern.
 
 ### Script Pengerjaan
+- Setup terlebih dahulu pada Node Denke (Database Master) antara lain mengkoneksikan ke routernya, mengupdate packagenya, serta  instalasi mysql-server agar aplikasi Laravel yang kita buat terkoneksi dengan database
+```
+echo nameserver 192.168.122.1  > /etc/resolv.conf
+apt-get update
+apt-get install mariadb-server -y
+```
+- Kemudian nyalakan service mysql dengan perintah berikut
+```
+service mysql restart
+```
+- Lakukan konfigurasi mysql sebagai berikut dengan yyy merupakan kode kelompok:
+```
+CREATE USER 'kelompoke17'@'%' IDENTIFIED BY 'ajke17';
+CREATE USER 'kelompoke17'@'localhost' IDENTIFIED BY 'ajke17';
+CREATE DATABASE dbe17;
+GRANT ALL PRIVILEGES ON *.* TO 'kelompoke17'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'kelompoke17'@'localhost';
+FLUSH PRIVILEGES;
+```
+- Untuk mengecek apakah database sudah dapat diakses melalui Worker, lakukan instalasi mariadb-client pada Worker1 sebagai berikut:
+```
+apt-get update
+apt-get install mariadb-client -y
+```
+- Setelah itu lakukan pengecekan di salah satu Laravel Worker. Disini kami akan melakukan pengecekan pada worker Fern dengan melakukan perintah shell berikut
+```
+mariadb –host=10.45.2.1 –port=3306 –user=kelompoke17 –password=ajke17
+```
 ### Hasil
 ![Alt Text]()
 
@@ -851,6 +879,157 @@ Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frie
 > Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan ``quest guide`` berikut. Jangan lupa melakukan instalasi PHP8.0 dan Composer
 
 ### Script Pengerjaan
+- lakukan update package-list dengan command:
+```
+apt-get update
+```
+- Lakukan instalasi package yang diperlukan untuk menambahkan repository PHP.
+```
+apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2
+```
+- unduh GPG-key dan tambahkan dengan perintah berikut:
+```
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+```
+- Tambahkan entri repositori baru untuk paket PHP Ondrej Sury ke worker dengan perintah berikut:
+```
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+```
+- Setelah itu install git dan lakukan cloning terhadap resource yang telah diberikan
+```
+git clone https://github.com/martuafernando/laravel-praktikum-jarkom.git
+cp -r laravel-praktikum-jarkom /var/www/
+```
+- lakukan konfigurasi sebagai berikut pada masing-masing worker.
+```
+nano /root/.env
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=10.45.2.1
+DB_PORT=3306
+DB_DATABASE=dbe17
+DB_USERNAME=kelompoke17
+DB_PASSWORD=ajke17
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_APP_CLUSTER=mt1
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+```
+- Setelah itu, update dan install vendor dengan perintah berikut pada direktori laravel-simple-rest-api
+```
+cp .env /var/www/laravel-praktikum-jarkom
+
+cd /var/www/laravel-praktikum-jarkom
+composer update
+composer install
+```
+- Setelah env selesai diset, jalankan perintah berikut pada Worker:
+```
+php artisan migrate:fresh
+php artisan db:seed --class=AiringsTableSeeder
+```
+Perintah di atas akan melakukan migrasi tabel dari Laravel ke Database dan akan melakukan seed data pada class AiringTableSeeder ke database.
+- Lakukan pengecekan pada database di terminal workernya dengan perintah
+```
+mariadb –host=10.45.2.1 –port=3306 –user=kelompoke17 –password=ajke17
+SELECT * FROM airings
+```
+- Generate key pada project laravel dengan perintah berikut:
+```
+php artisan key:generate
+php artisan jwt:secret
+```
+- Untuk melakukan deployment pada masing-masing worker, tambahkan virtual host pada file ``/etc/nginx/sites-available/modul3``
+```
+(pastiin port tiap worker berbeda)
+nano /etc/nginx/sites-available/modul3
+ server {
+
+ 	listen 8001; #8001 Frieren, 8002 Flamme, 8003 Fern
+
+ 	root /var/www/modul3;
+
+ 	index index.php index.html index.htm;
+ 	server_name _;
+
+ 	location / {
+ 			try_files $uri $uri/ /index.php?$query_string;
+ 	}
+
+ 	# pass PHP scripts to FastCGI server
+ 	location ~ \.php$ {
+ 	include snippets/fastcgi-php.conf;
+ 	fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+ 	}
+
+ location ~ /\.ht {
+ 			deny all;
+ 	}
+
+ 	error_log /var/log/nginx/implementasi_error.log;
+ 	access_log /var/log/nginx/implementasi_access.log;
+ }
+```
+- Setelah selesai, buat symlink untuk melakukan enable pada site dengan perintah:
+```
+ln -s /etc/nginx/sites-available/modul3 /etc/nginx/sites-enabled/
+```
+- Kemudian, untuk memastikan bahwa server web (diasumsikan berjalan sebagai www-data) memiliki izin yang diperlukan untuk mengelola dan mengakses direktori penyimpanan maka jalankan perintah berikut:
+```
+chown -R www-data.www-data /var/www/laravel-praktikum-jarkom/storage
+```
+- Jalankan service php-fpm dengan perintah berikut:
+```
+service php8.0-fpm restart
+service nginx restart
+```
 ### Hasil
 ![Alt Text]()
 
@@ -859,6 +1038,15 @@ Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frie
 a. POST /auth/register
 
 ### Script Pengerjaan
+- Untuk mengerjakan soal ini. Diperlukan melakukan testing menggunakan Apache Benchmark pada salah satu worker saja.
+```
+nano /root/login_data.json
+{“username”:”ikikganteng”,”password”:”ajke17”}
+```
+- Lakukan testing pada terminal client dengan perintah sebagai berikut
+```
+ab -n 100 -c 10 -T 'application/json' -p register_data.json -g register_results.data http://192.177.4.1:8001/api/auth/register
+```
 ### Hasil
 ![Alt Text]()
 
